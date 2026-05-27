@@ -1,0 +1,2706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visor Vigilante V12 - Contratación Estatal de San Luis, Antioquia</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Visor ciudadano interactivo V12 para auditar los contratos estatales de San Luis, Antioquia. Versión 12.0 con filtros preestablecidos de estados activos y exclusión de borradores o anulados, dedicatoria de John Charcos, cifras exactas y filtros de años.">
+  <meta name="keywords" content="San Luis, Antioquia, Contratación Estatal, SECOP, Vigilancia Ciudadana, Transparencia, John Charcos del Río, Filtro por rango de años, Unificar contratos, Veeduría Ciudadana">
+  <meta name="author" content="John Charcos del Río">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Chart.js DataLabels Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  
+  <!-- SheetJS (XLSX) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    /* Variables de diseño premium - La Perla Verde */
+    :root {
+      --bg-dark: #080D15;
+      --bg-card: #0F172A;
+      --bg-card-hover: #1E293B;
+      --primary: #10B981; /* Verde menta */
+      --primary-medium: #059669; /* Verde esmeralda */
+      --primary-dark: #047857; /* Verde bosque */
+      --primary-light: #34D399;
+      --accent: #F59E0B; /* Ámbar para contratos / cantidad */
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --glass-bg: rgba(15, 23, 42, 0.65);
+      --glass-border: rgba(16, 185, 129, 0.15);
+      --glow: 0 0 20px rgba(16, 185, 129, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(5, 150, 105, 0.05) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.03) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.5) 0px, transparent 100%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* HEADER / HERO */
+    header {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-medium), var(--primary-light));
+    }
+
+    .header-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header-info {
+      max-width: 75%;
+    }
+
+    .badge-town {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--primary-light);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      box-shadow: var(--glow);
+    }
+
+    .badge-town i {
+      animation: pulse 2s infinite;
+    }
+
+    .badge-v2 {
+      background: linear-gradient(135deg, var(--accent), #D97706);
+      color: #FFFFFF;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+      display: inline-block;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      background: linear-gradient(135deg, #FFFFFF 30%, var(--primary-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 90%;
+    }
+
+    /* MENSAGEM VIGILANTE */
+    .vigilante-box {
+      background: rgba(16, 185, 129, 0.05);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .vigilante-box i {
+      color: var(--primary);
+      flex-shrink: 0;
+      font-size: 1.25rem;
+      margin-top: 0.1rem;
+    }
+
+    .vigilante-text strong {
+      color: var(--primary-light);
+    }
+
+    /* PROGRESS BAR */
+    .loader-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      margin-bottom: 2rem;
+      box-shadow: var(--glow);
+    }
+
+    .loader-title {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .progress-bar-bg {
+      background: rgba(255, 255, 255, 0.05);
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-medium), var(--primary-light));
+      border-radius: 999px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    .loader-status {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* KPI CARDS GRID */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), var(--glow);
+    }
+
+    .kpi-card:hover::before {
+      opacity: 1;
+    }
+
+    .kpi-card:hover .kpi-value {
+      color: var(--primary-light);
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .kpi-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .kpi-icon {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--primary-light);
+      padding: 0.6rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+    }
+
+    .kpi-value {
+      font-size: 2.25rem;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      color: #FFFFFF;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+      transition: color 0.2s ease;
+    }
+
+    .kpi-footer {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* CHARTS SECTION */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media(max-width: 768px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      height: 380px;
+    }
+
+    .chart-card-full {
+      grid-column: 1 / -1;
+      height: auto;
+      min-height: 1180px;
+    }
+
+    .chart-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .chart-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .chart-title i {
+      color: var(--primary-light);
+    }
+
+    .chart-title span.badge-years {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--accent);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 0.5rem;
+    }
+
+    .chart-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      padding: 0.25rem;
+      border-radius: 10px;
+    }
+
+    .chart-action-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .btn-toggle-sort {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-toggle-sort:hover {
+      color: var(--text-main);
+    }
+
+    .btn-toggle-sort.active {
+      background: var(--primary-medium);
+      color: #FFFFFF;
+      border-color: var(--primary-medium);
+      box-shadow: var(--glow);
+    }
+
+    .btn-download-chart {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--primary-light);
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-download-chart:hover {
+      background: var(--primary-medium);
+      color: #FFFFFF;
+      border-color: var(--primary-medium);
+      box-shadow: var(--glow);
+    }
+
+    .chart-container {
+      position: relative;
+      flex-grow: 1;
+      height: 100%;
+      width: 100%;
+    }
+
+    .chart-container-scrollable {
+      min-height: 1050px;
+      position: relative;
+    }
+
+    /* FILTROS Y CONTROL DE TABLA */
+    .control-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 1.75rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      margin-bottom: 2rem;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .filter-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .filter-label i {
+      font-size: 0.95rem;
+    }
+
+    .search-wrapper {
+      position: relative;
+    }
+
+    .search-wrapper i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .form-input-search {
+      padding-left: 2.75rem;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+      background: #25334D;
+    }
+
+    select.form-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.1rem;
+      padding-right: 2.5rem;
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.25rem;
+    }
+
+    .results-counter {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .results-counter strong {
+      color: var(--primary-light);
+    }
+
+    .btn-export {
+      background: linear-gradient(135deg, var(--primary-medium), var(--primary-dark));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #FFFFFF;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+    }
+
+    .btn-export:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3), var(--glow);
+      filter: brightness(1.1);
+    }
+
+    .btn-export:active {
+      transform: translateY(0);
+    }
+
+    /* TABLA */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      margin-bottom: 2rem;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.85);
+      border-bottom: 2px solid var(--border-color);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 1rem 1.25rem;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+      vertical-align: middle;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr {
+      transition: background-color 0.2s ease;
+    }
+
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    /* BADGES */
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .badge-status-green {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--primary-light);
+    }
+
+    .badge-status-blue {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: #60A5FA;
+    }
+
+    .badge-status-yellow {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      color: #FBBF24;
+    }
+
+    .badge-status-gray {
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #CBD5E1;
+    }
+
+    /* PAGINACIÓN */
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      background: rgba(15, 23, 42, 0.5);
+      border-top: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .page-info {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .page-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-page {
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-page:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary-light);
+    }
+
+    .btn-page:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-details {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--primary-light);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-details:hover {
+      background: var(--primary-medium);
+      color: #FFFFFF;
+      border-color: var(--primary-medium);
+    }
+
+    /* MODAL */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(8, 13, 21, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 800px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), var(--glow);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    .modal-backdrop.active .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 1.75rem 2rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 10;
+    }
+
+    .modal-title-area {
+      max-width: 90%;
+    }
+
+    .modal-title-top {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary-light);
+      margin-bottom: 0.25rem;
+      font-weight: 700;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      color: #FFFFFF;
+      line-height: 1.3;
+    }
+
+    .btn-close {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.5rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-close:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    .modal-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media(max-width: 640px) {
+      .modal-detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .detail-item-full {
+      grid-column: span 2;
+    }
+
+    @media(max-width: 640px) {
+      .detail-item-full {
+        grid-column: span 1;
+      }
+    }
+
+    .detail-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .detail-val {
+      font-size: 1rem;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      word-break: break-word;
+    }
+
+    .detail-val-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-light);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .modal-actions {
+      border-top: 1px solid var(--border-color);
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      background: rgba(15, 23, 42, 0.3);
+    }
+
+    .btn-link-secop {
+      background: linear-gradient(135deg, #1E293B, #0F172A);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-link-secop:hover {
+      border-color: var(--primary);
+      color: var(--primary-light);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      margin-top: 4rem;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .footer-content {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-credit {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .footer-credit strong {
+      color: var(--primary-light);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .footer-meta {
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.5);
+    }
+
+    .footer-shield {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid var(--glass-border);
+      color: var(--primary);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+    }
+
+    /* ANIMATIONS */
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .animate-pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* ESTILO ADICIONAL DE TABLA VACIA / LOADING */
+    .no-data-card {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .no-data-card i {
+      font-size: 3rem;
+      color: var(--primary-medium);
+      opacity: 0.4;
+      margin-bottom: 1rem;
+    }
+
+    .no-data-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Estilos responsivos */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      header {
+        padding: 1.5rem;
+      }
+      .header-layout {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .header-info {
+        max-width: 100%;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .btn-export {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER HERO -->
+    <header>
+      <div class="header-layout">
+        <div class="header-info">
+          <div class="badge-town">
+            <i data-lucide="shield-check"></i>
+            San Luis, Antioquia • La Perla Verde
+          </div>
+          <h1 style="display: inline-flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; vertical-align: middle;">
+            <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; color: var(--primary-light); filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.45)); flex-shrink: 0; display: inline-block; vertical-align: middle;">
+              <!-- Sombrero de Deerstalker (Sherlock) -->
+              <path d="M16 30 C16 15, 48 15, 48 30 Z" fill="rgba(16, 185, 129, 0.12)" stroke="var(--primary-light)" />
+              <path d="M10 30 H54" stroke="var(--primary-light)" stroke-width="3" />
+              <!-- Lazo del sombrero -->
+              <path d="M26 15 C28 11, 36 11, 38 15" stroke="var(--primary-light)" stroke-width="2" />
+              
+              <!-- Lupa de Detective (Observación) -->
+              <circle cx="44" cy="42" r="10" stroke="var(--accent)" stroke-width="3" fill="rgba(245, 158, 11, 0.15)" />
+              <line x1="51" y1="49" x2="59" y2="57" stroke="var(--accent)" stroke-width="3.5" />
+              
+              <!-- Ojo observando dentro de la lupa -->
+              <path d="M39 42 Q44 38 49 42 Q44 46 39 42 Z" stroke="var(--accent)" stroke-width="1.5" />
+              <circle cx="44" cy="42" r="2.5" fill="var(--accent)" />
+              
+              <!-- Pipa clásica de Sherlock -->
+              <path d="M24 36 C24 43, 31 43, 31 38 V36" stroke="var(--primary-light)" stroke-width="2" />
+              <path d="M29 36 H33" stroke="var(--primary-light)" stroke-width="3" />
+            </svg>
+            <span>Visor Vigilante</span>
+            <span class="badge-v2">V12</span>
+          </h1>
+          <p class="subtitle">Auditoría Fiscal e interactiva en San Luis con filtros de estados preestablecidos, exclusión de borradores, unificación inteligente y cifras exactas.</p>
+            <a href="#" onclick="openCreatorModal(event)" style="color: var(--primary-light); text-decoration: underline; font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600; cursor: pointer; display: inline-block;">
+              <i data-lucide="heart" style="width: 13px; height: 13px; display: inline; vertical-align: middle; fill: var(--primary-light);"></i> Ver Dedicatoria del Creador
+            </a>
+        </div>
+      </div>
+      
+      <div class="vigilante-box">
+        <i data-lucide="info"></i>
+        <div class="vigilante-text">
+          Como sanluisano, **tú eres el principal actor de vigilancia** para que no se pierda un solo peso en nuestro municipio. Esta plataforma es la herramienta técnica para que ejerzas el control social y audites las inversiones del tesoro público.
+        </div>
+      </div>
+    </header>
+
+    <!-- PROGRESO DE CARGA -->
+    <div id="loader" class="loader-container">
+      <div class="loader-title">Conectando con la base de datos nacional SECOP (SODA3)...</div>
+      <div class="progress-bar-bg">
+        <div id="progressBar" class="progress-bar-fill"></div>
+      </div>
+      <div id="loaderStatus" class="loader-status">Iniciando consulta para San Luis, Antioquia...</div>
+    </div>
+
+    <!-- PANEL PRINCIPAL (DASHBOARD) - Inicialmente Oculto -->
+    <div id="dashboard" style="display: none;">
+      
+      <!-- KPI GRID -->
+      <div class="kpi-grid">
+        
+        <!-- KPI 1 -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Valor Total Contratado</span>
+            <div class="kpi-icon">
+              <i data-lucide="coins"></i>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-value" id="kpi-total-val">$0</div>
+            <div class="kpi-footer">
+              <i data-lucide="trending-up" style="color: var(--primary);"></i>
+              <span>Total en el período seleccionado</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Total de Contratos</span>
+            <div class="kpi-icon">
+              <i data-lucide="files"></i>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-value" id="kpi-total-count">0</div>
+            <div class="kpi-footer">
+              <i data-lucide="database" style="color: var(--primary);"></i>
+              <span>Procesos en el período seleccionado</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Valor Promedio</span>
+            <div class="kpi-icon">
+              <i data-lucide="calculator"></i>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-value" id="kpi-avg-val">$0</div>
+            <div class="kpi-footer">
+              <i data-lucide="bar-chart-2" style="color: var(--primary);"></i>
+              <span>Promedio por adjudicación</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Mayor Contratista</span>
+            <div class="kpi-icon">
+              <i data-lucide="award"></i>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-value" id="kpi-top-contractor" style="font-size: 1.15rem; word-break: break-word; white-space: normal; height: 55px; display: flex; align-items: center;">Cargando...</div>
+            <div class="kpi-footer">
+              <i data-lucide="user" style="color: var(--primary);"></i>
+              <span id="kpi-top-contractor-val">Valor: $0</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VISUALIZACIÓN GRÁFICA PARTE 1 -->
+      <div class="charts-grid">
+        
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i data-lucide="pie-chart"></i>
+              Tipos de Contrato
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="typeChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i data-lucide="trending-up"></i>
+              Evolución Anual
+              <span class="badge-years" id="yearly-chart-badge">Rango Dinámico</span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="yearlyChart"></canvas>
+          </div>
+        </div>
+
+        <!-- GRÁFICO FULL WIDTH DE TOP 50 CONTRATISTAS CON DATALABELS EXÁCTOS Y FILTRO TEMPORAL -->
+        <div class="chart-card chart-card-full">
+          <div class="chart-header">
+            <div class="chart-title" style="flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i data-lucide="bar-chart-3"></i>
+                Top 50 Contratistas con Mayor Contratación
+              </div>
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">
+                💡 <strong>Haz clic sobre una barra</strong> para filtrar la tabla y ver el listado de contratos.
+              </span>
+            </div>
+            
+            <div class="chart-actions">
+              <!-- Rango de tiempo -->
+              <div class="action-group">
+                <span class="chart-action-label">Rango:</span>
+                <button id="btn-time-4years" class="btn-toggle-sort active" onclick="changeTop50TimeRange('4years')">
+                  Últimos 4 Años
+                </button>
+                <button id="btn-time-all" class="btn-toggle-sort" onclick="changeTop50TimeRange('all')">
+                  Histórico Completo
+                </button>
+              </div>
+
+              <!-- Ordenación métrica -->
+              <div class="action-group">
+                <span class="chart-action-label">Ordenar:</span>
+                <button id="btn-sort-amount" class="btn-toggle-sort active" onclick="changeTop50Sort('amount')">
+                  Monto Total (COP)
+                </button>
+                <button id="btn-sort-count" class="btn-toggle-sort" onclick="changeTop50Sort('count')">
+                  No. Contratos
+                </button>
+              </div>
+
+              <button class="btn-download-chart" onclick="downloadTop50ChartImage()">
+                <i data-lucide="download" style="width: 14px; height: 14px;"></i> Guardar Imagen
+              </button>
+            </div>
+          </div>
+          
+          <div class="chart-container-scrollable">
+            <canvas id="top50Chart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CONTROLES Y FILTROS -->
+      <div class="control-card" id="filtros-seccion">
+        <div class="filters-grid">
+          
+          <div class="filter-group">
+            <label class="filter-label" for="search-input">
+              <i data-lucide="search"></i> Buscar
+            </label>
+            <div class="search-wrapper">
+              <i data-lucide="search"></i>
+              <input type="text" id="search-input" class="form-input form-input-search" placeholder="Contratista, NIT, documento proveedor, objeto...">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="filter-type">
+              <i data-lucide="filter"></i> Tipo de Contrato
+            </label>
+            <select id="filter-type" class="form-input">
+              <option value="all">Todos los tipos</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="filter-status">
+              <i data-lucide="activity"></i> Estado Proceso
+            </label>
+            <select id="filter-status" class="form-input">
+              <option value="main_states" selected>Estados principales (En ejecución, Celebrado...)</option>
+              <option value="all">Todos los estados</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="filter-min-val">
+              <i data-lucide="dollar-sign"></i> Valor Mínimo (COP)
+            </label>
+            <input type="number" id="filter-min-val" class="form-input" placeholder="Minimo...">
+          </div>
+
+          <!-- FILTROS DE RANGO DE AÑO (Desde / Hasta) CON VALIDACIÓN LÓGICA Y TIMEZONE-SAFE -->
+          <div class="filter-group" style="border: 1px dashed rgba(16, 185, 129, 0.2); padding: 0.5rem; border-radius: 12px; background: rgba(16, 185, 129, 0.01);">
+            <label class="filter-label" for="filter-year-from" style="color: var(--primary-light);">
+              <i data-lucide="calendar"></i> Desde (Año)
+            </label>
+            <select id="filter-year-from" class="form-input" style="border-color: rgba(16, 185, 129, 0.2);">
+              <option value="all">Cualquier año (Desde)</option>
+            </select>
+          </div>
+
+          <div class="filter-group" style="border: 1px dashed rgba(16, 185, 129, 0.2); padding: 0.5rem; border-radius: 12px; background: rgba(16, 185, 129, 0.01);">
+            <label class="filter-label" for="filter-year-to" style="color: var(--primary-light);">
+              <i data-lucide="calendar"></i> Hasta (Año)
+            </label>
+            <select id="filter-year-to" class="form-input" style="border-color: rgba(16, 185, 129, 0.2);">
+              <option value="all">Cualquier año (Hasta)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="actions-row">
+          <div class="results-counter" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <span>Mostrando <strong id="visible-count">0</strong> de <strong id="total-filtered-count">0</strong> contratos filtrados (Total: <span id="span-absolute-count">0</span>)</span>
+            <span id="active-range-badge" class="badge-town" style="margin-bottom: 0; box-shadow: none; font-size: 0.75rem; padding: 0.25rem 0.75rem; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--primary-light); text-transform: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
+              <span id="active-range-text">Histórico Completo</span>
+            </span>
+          </div>
+          
+          <button onclick="exportToExcel()" class="btn-export">
+            <i data-lucide="download"></i>
+            Exportar a Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- TABLA DE RESULTADOS - 22 COLUMNAS -->
+      <div class="table-container">
+        <div class="table-responsive">
+          <table id="contracts-table">
+            <thead>
+              <tr>
+                <!-- Ordenación de columnas requerida -->
+                <th>Contratista (Razón Social)</th>
+                <th>Doc. Proveedor</th>
+                <th style="text-align: right;">Valor Contrato</th>
+                <th>Fecha Firma</th>
+                <th>Fecha Fin Ejecución</th>
+                
+                <!-- Resto de columnas de la base de datos -->
+                <th>Nombre de la Entidad</th>
+                <th>Objeto del Contrato</th>
+                <th>Estado del Proceso</th>
+                <th>Tipo de Contrato</th>
+                <th>Fecha Inicio Ejecución</th>
+                <th>ID Contrato</th>
+                <th>ID Proceso</th>
+                <th>NIT de la Entidad</th>
+                <th>Modalidad Contratación</th>
+                <th>Objeto del Proceso</th>
+                <th>Nivel Entidad</th>
+                <th>Código Entidad</th>
+                <th>Tipo Doc Proveedor</th>
+                <th>Departamento</th>
+                <th>Municipio</th>
+                <th>Origen</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="contracts-body">
+              <!-- Cargado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- PAGINACIÓN -->
+        <div class="pagination">
+          <div class="page-info" id="page-info">
+            Página 1 de 1
+          </div>
+          <div class="page-controls">
+            <button class="btn-page" id="btn-prev" onclick="prevPage()">
+              <i data-lucide="chevron-left"></i> Anterior
+            </button>
+            <button class="btn-page" id="btn-next" onclick="nextPage()">
+              Siguiente <i data-lucide="chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL DETALLE DE CONTRATO -->
+  <div id="detailsModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <div class="modal-title-top" id="modal-subtitle">Detalles de Contrato</div>
+          <h2 class="modal-title" id="modal-contract-id">Contrato No. 1234</h2>
+        </div>
+        <button class="btn-close" onclick="toggleModal(false)">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="modal-detail-grid">
+          
+          <div class="detail-item detail-item-full">
+            <span class="detail-label">Nombre de la Entidad pública</span>
+            <div class="detail-val" id="det-entidad">N/D</div>
+          </div>
+
+          <div class="detail-item detail-item-full">
+            <span class="detail-label">Contratista / Razón Social</span>
+            <div class="detail-val" id="det-contratista" style="font-weight: 600;">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Valor del Contrato (COP)</span>
+            <div class="detail-val detail-val-value" id="det-valor">$0</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Estado del Proceso</span>
+            <div class="detail-val" id="det-estado">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Tipo de Contrato</span>
+            <div class="detail-val" id="det-tipo-contrato">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Fecha de Firma del Contrato</span>
+            <div class="detail-val" id="det-fecha-firma">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Fecha de Inicio Ejecución</span>
+            <div class="detail-val" id="det-fecha-inicio">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Fecha de Fin Ejecución</span>
+            <div class="detail-val" id="det-fecha-fin">N/D</div>
+          </div>
+
+          <div class="detail-item detail-item-full">
+            <span class="detail-label">Objeto del Contrato</span>
+            <div class="detail-val" id="det-objeto-contrato" style="white-space: pre-line;">N/D</div>
+          </div>
+
+          <div class="detail-item detail-item-full">
+            <span class="detail-label">Objeto del Proceso (Publicación)</span>
+            <div class="detail-val" id="det-objeto-proceso" style="white-space: pre-line;">N/D</div>
+          </div>
+
+          <!-- Campos adicionales -->
+          <div class="detail-item">
+            <span class="detail-label">Nivel de la Entidad</span>
+            <div class="detail-val" id="det-nivel-entidad">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Código de la Entidad en SECOP</span>
+            <div class="detail-val" id="det-codigo-entidad">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">NIT de la Entidad</span>
+            <div class="detail-val" id="det-nit-entidad">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Modalidad de Contratación</span>
+            <div class="detail-val" id="det-modalidad">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">ID Proceso</span>
+            <div class="detail-val" id="det-id-proceso">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Origen de la Plataforma</span>
+            <div class="detail-val" id="det-origen">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Tipo Documento Proveedor</span>
+            <div class="detail-val" id="det-tipo-doc-proveedor">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Documento Proveedor</span>
+            <div class="detail-val" id="det-doc-proveedor">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Departamento Entidad</span>
+            <div class="detail-val" id="det-departamento">N/D</div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Municipio Entidad</span>
+            <div class="detail-val" id="det-municipio">N/D</div>
+          </div>
+
+        </div>
+
+      </div>
+      <div class="modal-actions">
+        <!-- SOLUCIÓN AL ERROR 403 -->
+        <a id="det-url" href="#" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="btn-link-secop">
+          <i data-lucide="external-link"></i>
+          Ver Proceso Completo en SECOP
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DEDICATORIA DEL CREADOR (VENTANA FLOTANTE) -->
+  <div id="creatorModal" class="modal-backdrop" onclick="closeCreatorModal(event)">
+    <div class="modal-content" style="max-width: 520px; text-align: center; padding: 2.75rem; border: 1px solid var(--glass-border);" onclick="event.stopPropagation()">
+      <div style="background: rgba(16, 185, 129, 0.1); width: 84px; height: 84px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; border: 1px solid var(--primary-light); box-shadow: var(--glow);">
+        <i data-lucide="heart" style="width: 44px; height: 44px; color: var(--primary-light); fill: var(--primary-light); animation: heartbeat 1.5s infinite;"></i>
+      </div>
+      <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.85rem; color: #FFFFFF; margin-bottom: 1rem; background: linear-gradient(135deg, #FFFFFF, var(--primary-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Con Cariño para San Luis
+      </h2>
+      <div style="font-size: 1rem; line-height: 1.6; color: var(--text-main); margin-bottom: 2.25rem; text-align: justify;">
+        Esta plataforma de control y veeduría ciudadana fue desarrollada por <strong>John Charcos del Río</strong> con profundo cariño por su tierra.
+        <br><br>
+        Su único propósito es que <strong>en San Luis todo ciudadano conozca con total transparencia en qué se gasta el dinero público</strong>. ¡El cuidado de los recursos de nuestra amada "Perla Verde" es una labor que nos une a todos!
+      </div>
+      <button class="btn-export" style="width: 100%; justify-content: center;" onclick="toggleCreatorModal(false)">
+        <i data-lucide="check"></i> Empezar a Auditar
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-shield">
+        <i data-lucide="shield"></i>
+        Control Ciudadano Activo • Versión 12.0
+      </div>
+      <p class="footer-credit">
+        Este software fue creado por <strong>John Charcos del Río</strong> para empoderar a la comunidad sanluisana.
+        <br>
+        <a href="#" onclick="openCreatorModal(event)" style="color: var(--primary-light); text-decoration: underline; font-size: 0.85rem; margin-top: 0.5rem; display: inline-block; cursor: pointer; font-weight: 500;">
+          <i data-lucide="heart" style="width: 11px; height: 11px; display: inline; vertical-align: middle; fill: var(--primary-light);"></i> Ver Dedicatoria del Creador
+        </a>
+      </p>
+      <p class="footer-meta">
+        Desarrollado en honor a la Perla Verde del Oriente Antioqueño • San Luis, Colombia.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Variables de Estado de la Aplicación
+    let rawContracts = [];
+    let filteredContracts = [];
+    let currentPage = 1;
+    const recordsPerPage = 15;
+    
+    // Configuración de visualización del Top 50
+    let top50SortField = 'amount'; 
+    let top50TimeRange = '4years'; 
+    let currentSortedList = []; 
+
+    // Instancias de Gráficos
+    let typeChartInstance = null;
+    let yearlyChartInstance = null;
+    let top50ChartInstance = null;
+
+    // Registrar plugins globales para Chart.js
+    const customCanvasBackgroundColor = {
+      id: 'customCanvasBackgroundColor',
+      beforeDraw: (chart, args, options) => {
+        const {ctx} = chart;
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = options.color || '#0F172A';
+        ctx.fillRect(0, 0, chart.width, chart.height);
+        ctx.restore();
+      }
+    };
+    Chart.register(customCanvasBackgroundColor);
+    
+    // Plugin DataLabels
+    Chart.register(ChartDataLabels);
+
+    // Inicializar Lucide Icons
+    lucide.createIcons();
+
+    // Ordenar contratos cronológicamente descendentemente
+    function sortContractsDescending(arr) {
+      arr.sort((a, b) => {
+        const dateA = a.fecha_de_firma_del_contrato || "";
+        const dateB = b.fecha_de_firma_del_contrato || "";
+        
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        
+        return dateB.localeCompare(dateA); 
+      });
+    }
+
+    // Consultar datos de Socrata SODA3 API progresivamente
+    async function init() {
+      const loader = document.getElementById('loader');
+      const progressBar = document.getElementById('progressBar');
+      const loaderStatus = document.getElementById('loaderStatus');
+      const dashboard = document.getElementById('dashboard');
+
+      try {
+        const queryUrl = "https://www.datos.gov.co/api/v3/views/rpmr-utcd/query.json";
+        
+        // 1. Obtener conteo total para configurar barra de progreso
+        loaderStatus.textContent = "Conectando con el portal de Datos Abiertos de Colombia...";
+        const countResponse = await fetch(queryUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: "SELECT COUNT(*) WHERE departamento_entidad = 'Antioquia' AND municipio_entidad = 'San Luis'"
+          })
+        });
+
+        if (!countResponse.ok) throw new Error("No se pudo obtener el conteo de contratos.");
+        const countData = await countResponse.json();
+        const totalRecords = parseInt(countData[0].COUNT) || 8776;
+        
+        progressBar.style.width = "5%";
+        loaderStatus.textContent = `Se encontraron ${totalRecords.toLocaleString()} contratos. Cargando información de SECOP...`;
+
+        const fields = [
+          "nivel_entidad",
+          "codigo_entidad_en_secop",
+          "nombre_de_la_entidad",
+          "nit_de_la_entidad",
+          "departamento_entidad",
+          "municipio_entidad",
+          "estado_del_proceso",
+          "modalidad_de_contrataci_n",
+          "objeto_a_contratar",
+          "objeto_del_proceso",
+          "tipo_de_contrato",
+          "fecha_de_firma_del_contrato",
+          "fecha_inicio_ejecuci_n",
+          "fecha_fin_ejecuci_n",
+          "numero_del_contrato",
+          "numero_de_proceso",
+          "valor_contrato",
+          "nom_raz_social_contratista",
+          "url_contrato",
+          "origen",
+          "tipo_documento_proveedor",
+          "documento_proveedor"
+        ].join(", ");
+
+        // 2. Descargar en lotes de 3000 registros
+        const chunkSize = 3000;
+        let offset = 0;
+        
+        while (offset < totalRecords) {
+          loaderStatus.textContent = `Descargando contratos: ${offset.toLocaleString()} de ${totalRecords.toLocaleString()} (${Math.round((offset / totalRecords) * 100)}%)...`;
+          
+          const batchResponse = await fetch(queryUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: `SELECT ${fields} WHERE departamento_entidad = 'Antioquia' AND municipio_entidad = 'San Luis' ORDER BY fecha_de_firma_del_contrato DESC LIMIT ${chunkSize} OFFSET ${offset}`
+            })
+          });
+
+          if (!batchResponse.ok) {
+            console.warn("Fallo al consultar lote, suspendiendo descarga progresiva...");
+            break;
+          }
+
+          const batchData = await batchResponse.json();
+          if (batchData.length === 0) break;
+
+          // PROCESO DE EXCLUSIÓN DE ESTADOS NO DESEADOS (Borrador, Descartado, Terminado Anormalmente)
+          const filteredBatchData = batchData.filter(c => {
+            if (!c.estado_del_proceso) return true;
+            const cleanStatus = c.estado_del_proceso.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return cleanStatus !== "borrador" && 
+                   cleanStatus !== "descartado" && 
+                   cleanStatus !== "terminado anormalmente despues de convocado";
+          });
+
+          // PROCESO DE LIMPIEZA Y UNIFICACIÓN DE VARIANTES (Unicode Normalizer)
+          filteredBatchData.forEach(c => {
+            if (c.tipo_de_contrato) {
+              const clean = c.tipo_de_contrato.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              if (clean === "prestacion de servicios") {
+                c.tipo_de_contrato = "Prestación de servicios";
+              } else {
+                // Hacer CapitalCase de la primera letra para otros tipos de contrato
+                c.tipo_de_contrato = c.tipo_de_contrato.charAt(0).toUpperCase() + c.tipo_de_contrato.slice(1).trim();
+              }
+            }
+          });
+
+          rawContracts = rawContracts.concat(filteredBatchData);
+          sortContractsDescending(rawContracts);
+
+          offset += chunkSize;
+          
+          const percent = Math.min(95, Math.round((offset / totalRecords) * 100));
+          progressBar.style.width = `${percent}%`;
+
+          // Carga preliminar
+          if (rawContracts.length > 0 && offset === chunkSize) {
+            updateDashboard();
+          }
+        }
+
+        progressBar.style.width = "100%";
+        loaderStatus.textContent = "¡Carga completa! Construyendo gráficos dinámicos y visor de auditoría...";
+        
+        setTimeout(() => {
+          loader.style.display = 'none';
+          dashboard.style.display = 'block';
+          setupFiltersOptions();
+          updateDashboard();
+          setupEventListeners();
+        }, 600);
+
+      } catch (err) {
+        console.error(err);
+        loaderStatus.innerHTML = `<span style="color: #EF4444; font-weight: 600;">Error de conexión: ${err.message}</span><br>Recarga la página o vuelve a intentarlo más tarde.`;
+      }
+    }
+
+    // Configurar menús de filtros
+    function setupFiltersOptions() {
+      const typeSelect = document.getElementById('filter-type');
+      const statusSelect = document.getElementById('filter-status');
+      const yearFromSelect = document.getElementById('filter-year-from');
+      const yearToSelect = document.getElementById('filter-year-to');
+      
+      const currentType = typeSelect.value;
+      const currentStatus = statusSelect.value || 'main_states';
+      const currentFrom = yearFromSelect.value;
+      const currentTo = yearToSelect.value;
+
+      // Extraer tipos y estados únicos (los tipos ya vienen normalizados e unificados)
+      const types = [...new Set(rawContracts.map(c => c.tipo_de_contrato).filter(Boolean))].sort();
+      const statuses = [...new Set(rawContracts.map(c => c.estado_del_proceso).filter(Boolean))].sort();
+
+      // Extraer años únicos con algoritmo TIMEZONE-SAFE (evitando corrimientos de fecha local)
+      const years = [...new Set(rawContracts.map(c => {
+        if (!c.fecha_de_firma_del_contrato || c.fecha_de_firma_del_contrato.length < 4) return null;
+        const y = parseInt(c.fecha_de_firma_del_contrato.substring(0, 4));
+        return (isNaN(y) || y < 1900 || y > 2100) ? null : y;
+      }).filter(Boolean))].sort((a, b) => b - a); // Ordenar de más nuevo a más antiguo
+
+      // Repoblar Tipo de Contrato
+      typeSelect.innerHTML = '<option value="all">Todos los tipos de contrato</option>';
+      types.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        typeSelect.appendChild(opt);
+      });
+      typeSelect.value = currentType;
+
+      // Repoblar Estado
+      statusSelect.innerHTML = `
+        <option value="main_states">Estados principales (En ejecución, Celebrado, Liquidado...)</option>
+        <option value="all">Todos los estados</option>
+      `;
+      statuses.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        statusSelect.appendChild(opt);
+      });
+      statusSelect.value = currentStatus;
+
+      // Repoblar Año Desde
+      yearFromSelect.innerHTML = '<option value="all">Cualquier año (Desde)</option>';
+      years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearFromSelect.appendChild(opt);
+      });
+      yearFromSelect.value = currentFrom;
+
+      // Repoblar Año Hasta
+      yearToSelect.innerHTML = '<option value="all">Cualquier año (Hasta)</option>';
+      years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearToSelect.appendChild(opt);
+      });
+      yearToSelect.value = currentTo;
+
+      // Ejecutar validaciones iniciales de habilitación y actualizar badge
+      handleYearRangeValidation();
+    }
+
+    // Validación interactiva de dropdowns y badge de rango temporal
+    function handleYearRangeValidation(changedField) {
+      const fromSelect = document.getElementById('filter-year-from');
+      const toSelect = document.getElementById('filter-year-to');
+      
+      let fromVal = fromSelect.value;
+      let toVal = toSelect.value;
+
+      // Si hay un conflicto lógico de rango (Desde > Hasta), corregir automáticamente
+      if (fromVal !== 'all' && toVal !== 'all' && parseInt(fromVal) > parseInt(toVal)) {
+        if (changedField === 'from') {
+          toSelect.value = fromVal;
+          toVal = fromVal;
+        } else if (changedField === 'to') {
+          fromSelect.value = toVal;
+          fromVal = toVal;
+        }
+      }
+
+      // Deshabilitar y opacar opciones del select "Hasta" que sean menores a "Desde"
+      Array.from(toSelect.options).forEach(opt => {
+        if (opt.value === 'all') return;
+        const val = parseInt(opt.value);
+        if (fromVal !== 'all' && val < parseInt(fromVal)) {
+          opt.disabled = true;
+          opt.style.opacity = '0.4';
+        } else {
+          opt.disabled = false;
+          opt.style.opacity = '1';
+        }
+      });
+
+      // Deshabilitar y opacar opciones del select "Desde" que sean mayores a "Hasta"
+      Array.from(fromSelect.options).forEach(opt => {
+        if (opt.value === 'all') return;
+        const val = parseInt(opt.value);
+        if (toVal !== 'all' && val > parseInt(toVal)) {
+          opt.disabled = true;
+          opt.style.opacity = '0.4';
+        } else {
+          opt.disabled = false;
+          opt.style.opacity = '1';
+        }
+      });
+
+      // Actualizar visualmente el Badge Visual de Rango Activo
+      const activeRangeText = document.getElementById('active-range-text');
+      const activeRangeBadge = document.getElementById('active-range-badge');
+
+      if (fromVal === 'all' && toVal === 'all') {
+        activeRangeText.textContent = "Histórico Completo";
+        activeRangeBadge.style.background = "rgba(16, 185, 129, 0.08)";
+        activeRangeBadge.style.borderColor = "rgba(16, 185, 129, 0.25)";
+        activeRangeBadge.style.color = "var(--primary-light)";
+      } else {
+        activeRangeBadge.style.background = "rgba(245, 158, 11, 0.08)";
+        activeRangeBadge.style.borderColor = "rgba(245, 158, 11, 0.25)";
+        activeRangeBadge.style.color = "var(--accent)";
+
+        if (fromVal !== 'all' && toVal !== 'all') {
+          if (fromVal === toVal) {
+            activeRangeText.textContent = `Año: ${fromVal}`;
+          } else {
+            activeRangeText.textContent = `Período: ${fromVal} - ${toVal}`;
+          }
+        } else if (fromVal !== 'all') {
+          activeRangeText.textContent = `Desde: ${fromVal}`;
+        } else if (toVal !== 'all') {
+          activeRangeText.textContent = `Hasta: ${toVal}`;
+        }
+      }
+    }
+
+    // Event listeners
+    function setupEventListeners() {
+      document.getElementById('search-input').addEventListener('input', () => { currentPage = 1; updateDashboard(); });
+      document.getElementById('filter-type').addEventListener('change', () => { currentPage = 1; updateDashboard(); });
+      document.getElementById('filter-status').addEventListener('change', () => { currentPage = 1; updateDashboard(); });
+      document.getElementById('filter-min-val').addEventListener('input', () => { currentPage = 1; updateDashboard(); });
+      
+      // Listeners de cambio de rango de años
+      document.getElementById('filter-year-from').addEventListener('change', () => { 
+        handleYearRangeValidation('from');
+        currentPage = 1; 
+        updateDashboard(); 
+      });
+      document.getElementById('filter-year-to').addEventListener('change', () => { 
+        handleYearRangeValidation('to');
+        currentPage = 1; 
+        updateDashboard(); 
+      });
+    }
+
+    // Actualizar pantalla
+    function updateDashboard() {
+      applyFilters();
+      calculateKPIs();
+      renderCharts();
+      renderTable();
+    }
+
+    // Filtros locales
+    function applyFilters() {
+      const rawSearch = document.getElementById('search-input').value;
+      
+      // Función de limpieza de cadenas (Unicode-Safe: quita tildes, minúsculas y espacios extras)
+      const cleanStr = str => {
+        if (!str) return "";
+        return str.toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      };
+
+      const searchClean = cleanStr(rawSearch);
+      const type = document.getElementById('filter-type').value;
+      const status = document.getElementById('filter-status').value;
+      const minVal = parseFloat(document.getElementById('filter-min-val').value) || 0;
+      
+      // Valores de Rango de Año
+      const yearFrom = document.getElementById('filter-year-from').value;
+      const yearTo = document.getElementById('filter-year-to').value;
+
+      filteredContracts = rawContracts.filter(c => {
+        const textMatch = !searchClean || 
+          (c.nom_raz_social_contratista && cleanStr(c.nom_raz_social_contratista).includes(searchClean)) ||
+          (c.documento_proveedor && cleanStr(c.documento_proveedor).includes(searchClean)) ||
+          (c.nit_de_la_entidad && cleanStr(c.nit_de_la_entidad).includes(searchClean)) ||
+          (c.nombre_de_la_entidad && cleanStr(c.nombre_de_la_entidad).includes(searchClean)) ||
+          (c.objeto_a_contratar && cleanStr(c.objeto_a_contratar).includes(searchClean)) ||
+          (c.numero_del_contrato && cleanStr(c.numero_del_contrato).includes(searchClean));
+
+        const typeMatch = type === 'all' || c.tipo_de_contrato === type;
+        
+        // Filtro de estados (Filtro precargado 'main_states' y estados individuales)
+        let statusMatch = false;
+        if (status === 'all') {
+          statusMatch = true;
+        } else if (status === 'main_states') {
+          if (c.estado_del_proceso) {
+            const clean = c.estado_del_proceso.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            statusMatch = ["celebrado", "en ejecucion", "ejecucion", "activo", "modificado", "suspendido", "liquidado"].includes(clean);
+          }
+        } else {
+          statusMatch = c.estado_del_proceso === status;
+        }
+        
+        const val = parseFloat(c.valor_contrato) || 0;
+        const valueMatch = val >= minVal;
+
+        // FILTRO DE RANGO DE AÑOS ("entre periodos de años") con extracción TIMEZONE-SAFE
+        let yearMatch = true;
+        if (yearFrom !== 'all' || yearTo !== 'all') {
+          if (c.fecha_de_firma_del_contrato && c.fecha_de_firma_del_contrato.length >= 4) {
+            const year = parseInt(c.fecha_de_firma_del_contrato.substring(0, 4));
+            if (!isNaN(year)) {
+              if (yearFrom !== 'all' && year < parseInt(yearFrom)) yearMatch = false;
+              if (yearTo !== 'all' && year > parseInt(yearTo)) yearMatch = false;
+            } else {
+              yearMatch = false; // Excluir si el año no es un entero válido
+            }
+          } else {
+            yearMatch = false; // Excluir si no tiene fecha de firma pero hay filtros
+          }
+        }
+
+        return textMatch && typeMatch && statusMatch && valueMatch && yearMatch;
+      });
+    }
+
+    // Formatear monedas exactas con puntos
+    function formatCurrency(val) {
+      if (!val) return "$0";
+      const num = parseFloat(val);
+      if (isNaN(num)) return "$0";
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(num);
+    }
+
+    // Formatear Fechas
+    function formatDate(dateStr) {
+      if (!dateStr) return "N/D";
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "N/D";
+        return d.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      } catch(e) {
+        return "N/D";
+      }
+    }
+
+    // Calcular KPIs clave
+    function calculateKPIs() {
+      const totalCount = filteredContracts.length;
+      document.getElementById('kpi-total-count').textContent = totalCount.toLocaleString();
+      document.getElementById('span-absolute-count').textContent = rawContracts.length.toLocaleString();
+
+      let totalVal = 0;
+      let topContractorMap = {};
+
+      filteredContracts.forEach(c => {
+        const val = parseFloat(c.valor_contrato) || 0;
+        totalVal += val;
+
+        if (c.nom_raz_social_contratista) {
+          const contractor = c.nom_raz_social_contratista.toUpperCase().trim();
+          topContractorMap[contractor] = (topContractorMap[contractor] || 0) + val;
+        }
+      });
+
+      document.getElementById('kpi-total-val').textContent = formatCurrency(totalVal);
+      
+      const avgVal = totalCount > 0 ? (totalVal / totalCount) : 0;
+      document.getElementById('kpi-avg-val').textContent = formatCurrency(avgVal);
+
+      let topContractorName = "N/D";
+      let topContractorVal = 0;
+
+      for (const [name, val] of Object.entries(topContractorMap)) {
+        if (val > topContractorVal) {
+          topContractorVal = val;
+          topContractorName = name;
+        }
+      }
+
+      const topContractorElement = document.getElementById('kpi-top-contractor');
+      if (topContractorName !== "N/D") {
+        topContractorElement.textContent = topContractorName;
+        topContractorElement.title = topContractorName;
+        document.getElementById('kpi-top-contractor-val').textContent = `Monto: ${formatCurrency(topContractorVal)}`;
+      } else {
+        topContractorElement.textContent = "Ninguno";
+        document.getElementById('kpi-top-contractor-val').textContent = `Monto: $0`;
+      }
+    }
+
+    // Cambiar orden del gráfico Top 50
+    function changeTop50Sort(type) {
+      top50SortField = type;
+      
+      document.getElementById('btn-sort-amount').classList.remove('active');
+      document.getElementById('btn-sort-count').classList.remove('active');
+
+      if (type === 'amount') {
+        document.getElementById('btn-sort-amount').classList.add('active');
+      } else {
+        document.getElementById('btn-sort-count').classList.add('active');
+      }
+
+      renderTop50Chart();
+    }
+
+    // Cambiar rango de tiempo del gráfico Top 50
+    function changeTop50TimeRange(range) {
+      top50TimeRange = range;
+
+      document.getElementById('btn-time-4years').classList.remove('active');
+      document.getElementById('btn-time-all').classList.remove('active');
+
+      if (range === '4years') {
+        document.getElementById('btn-time-4years').classList.add('active');
+      } else {
+        document.getElementById('btn-time-all').classList.add('active');
+      }
+
+      renderTop50Chart();
+    }
+
+    // Renderizar Gráficos con Chart.js
+    function renderCharts() {
+      renderTypeChart();
+      renderYearlyChart();
+      renderTop50Chart();
+    }
+
+    // Gráfico 1: Tipos de Contrato
+    function renderTypeChart() {
+      const typeCounts = {};
+      filteredContracts.forEach(c => {
+        const t = c.tipo_de_contrato || "Otros / Sin clasificar";
+        typeCounts[t] = (typeCounts[t] || 0) + 1;
+      });
+
+      const typeLabels = Object.keys(typeCounts);
+      const typeData = Object.values(typeCounts);
+
+      if (typeChartInstance) typeChartInstance.destroy();
+
+      const ctxType = document.getElementById('typeChart').getContext('2d');
+      typeChartInstance = new Chart(ctxType, {
+        type: 'doughnut',
+        data: {
+          labels: typeLabels,
+          datasets: [{
+            data: typeData,
+            backgroundColor: [
+              '#10B981', '#059669', '#34D399', '#047857', '#065F46', 
+              '#064E3B', '#115E59', '#14B8A6', '#0D9488', '#0F766E'
+            ],
+            borderColor: '#0F172A',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: '#94A3B8',
+                font: { size: 10, family: 'Inter' }
+              }
+            },
+            datalabels: { display: false },
+            customCanvasBackgroundColor: { color: '#0F172A' }
+          }
+        }
+      });
+    }
+
+    // Gráfico 2: Evolución Anual DINÁMICA según el rango de años
+    function renderYearlyChart() {
+      let years = [];
+      const fromVal = document.getElementById('filter-year-from').value;
+      const toVal = document.getElementById('filter-year-to').value;
+
+      if (fromVal !== 'all' || toVal !== 'all') {
+        // Encontrar los años límites dentro del conjunto cargado
+        const parsedYears = rawContracts.map(c => {
+          if (!c.fecha_de_firma_del_contrato || c.fecha_de_firma_del_contrato.length < 4) return null;
+          const y = parseInt(c.fecha_de_firma_del_contrato.substring(0, 4));
+          return (isNaN(y) || y < 1900 || y > 2100) ? null : y;
+        }).filter(Boolean);
+
+        const minYear = fromVal !== 'all' ? parseInt(fromVal) : (parsedYears.length > 0 ? Math.min(...parsedYears) : new Date().getFullYear() - 4);
+        const maxYear = toVal !== 'all' ? parseInt(toVal) : (parsedYears.length > 0 ? Math.max(...parsedYears) : new Date().getFullYear());
+
+        if (minYear <= maxYear) {
+          for (let y = minYear; y <= maxYear; y++) {
+            years.push(y);
+          }
+        }
+      }
+
+      // Fallback a los últimos 5 años
+      if (years.length === 0) {
+        const currentYear = new Date().getFullYear();
+        years = Array.from({ length: 5 }, (_, i) => currentYear - 4 + i);
+      }
+
+      // Evitar sobrecarga en pantalla si el rango temporal es extremo (ej. 25 años)
+      if (years.length > 15) {
+        years = years.slice(-15); // Mostrar los últimos 15 años del rango
+      }
+
+      const yearlySums = {};
+      years.forEach(y => yearlySums[y] = 0);
+
+      filteredContracts.forEach(c => {
+        if (!c.fecha_de_firma_del_contrato || c.fecha_de_firma_del_contrato.length < 4) return;
+        const signYear = parseInt(c.fecha_de_firma_del_contrato.substring(0, 4));
+        if (signYear in yearlySums) {
+          const val = parseFloat(c.valor_contrato) || 0;
+          yearlySums[signYear] += val;
+        }
+      });
+
+      const labels = years.map(y => y.toString());
+      const dataValues = years.map(y => yearlySums[y]);
+
+      if (yearlyChartInstance) yearlyChartInstance.destroy();
+
+      const ctxYearly = document.getElementById('yearlyChart').getContext('2d');
+      yearlyChartInstance = new Chart(ctxYearly, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Monto Contratado (COP)',
+            data: dataValues,
+            backgroundColor: 'rgba(52, 211, 153, 0.2)',
+            borderColor: '#10B981',
+            borderWidth: 2,
+            borderRadius: 8,
+            type: 'bar'
+          }, {
+            label: 'Tendencia',
+            data: dataValues,
+            borderColor: '#F59E0B',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#F59E0B',
+            tension: 0.35,
+            type: 'line'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              labels: { color: '#94A3B8', font: { family: 'Inter' } }
+            },
+            datalabels: { display: false },
+            customCanvasBackgroundColor: { color: '#0F172A' }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94A3B8' }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: {
+                color: '#94A3B8',
+                callback: function(value) {
+                  return formatCurrency(value);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Gráfico 3: Top 50 Contratistas con escala exacta, título incluido en descarga y cifras exactas sin abreviar
+    function renderTop50Chart() {
+      const contractorMap = {};
+      const currentYear = new Date().getFullYear();
+
+      filteredContracts.forEach(c => {
+        if (top50TimeRange === '4years') {
+          if (!c.fecha_de_firma_del_contrato || c.fecha_de_firma_del_contrato.length < 4) return;
+          const signYear = parseInt(c.fecha_de_firma_del_contrato.substring(0, 4));
+          // Últimos 4 años reales (Año actual y 3 anteriores)
+          if (signYear < (currentYear - 3)) return;
+        }
+
+        if (c.nom_raz_social_contratista) {
+          const name = c.nom_raz_social_contratista.toUpperCase().trim();
+          const val = parseFloat(c.valor_contrato) || 0;
+          
+          if (!contractorMap[name]) {
+            contractorMap[name] = { name: name, amount: 0, count: 0 };
+          }
+          contractorMap[name].amount += val;
+          contractorMap[name].count += 1;
+        }
+      });
+
+      let sortedList = Object.values(contractorMap);
+      if (top50SortField === 'amount') {
+        sortedList.sort((a, b) => b.amount - a.amount);
+      } else {
+        sortedList.sort((a, b) => b.count - a.count);
+      }
+
+      currentSortedList = sortedList.slice(0, 50);
+
+      const labels = currentSortedList.map(item => {
+        const name = item.name;
+        return name.length > 35 ? name.substring(0, 32) + "..." : name;
+      });
+      
+      const amounts = currentSortedList.map(item => item.amount);
+      const counts = currentSortedList.map(item => item.count);
+
+      if (top50ChartInstance) top50ChartInstance.destroy();
+
+      const ctxTop50 = document.getElementById('top50Chart').getContext('2d');
+      const isSortingAmount = top50SortField === 'amount';
+      
+      // Construir título dinámico para renderizar en el canvas y descargarlo en la imagen
+      const rangeTitleText = top50TimeRange === '4years' ? 'Últimos 4 Años' : 'Histórico Completo';
+      const sortTitleText = isSortingAmount ? 'Monto Total Contratado (COP)' : 'Cantidad de Contratos Adjudicados';
+      const canvasTitle = `Top 50 Contratistas (${rangeTitleText}) - Ordenado por ${sortTitleText}`;
+
+      top50ChartInstance = new Chart(ctxTop50, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: isSortingAmount ? 'Monto Total Contratado (COP)' : 'Número de Contratos Adjudicados',
+            data: isSortingAmount ? amounts : counts,
+            backgroundColor: isSortingAmount ? 'rgba(16, 185, 129, 0.75)' : 'rgba(245, 158, 11, 0.75)',
+            borderColor: isSortingAmount ? '#10B981' : '#F59E0B',
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              right: 250, // Relleno amplio para cifras completas
+              left: 10
+            }
+          },
+          onClick: (event, elements) => {
+            if (elements && elements.length > 0) {
+              const clickedIndex = elements[0].index;
+              const contractor = currentSortedList[clickedIndex];
+              if (contractor) {
+                const searchInput = document.getElementById('search-input');
+                searchInput.value = contractor.name;
+                currentPage = 1;
+                updateDashboard();
+                
+                document.getElementById('filtros-seccion').scrollIntoView({ behavior: 'smooth' });
+              }
+            }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: canvasTitle,
+              color: '#F8FAFC',
+              font: {
+                family: 'Outfit',
+                size: 15,
+                weight: '700'
+              },
+              padding: {
+                top: 15,
+                bottom: 20
+              }
+            },
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { color: '#94A3B8', font: { family: 'Inter', size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const idx = context.dataIndex;
+                  const item = currentSortedList[idx];
+                  return `Monto: ${formatCurrency(item.amount)} | Contratos: ${item.count} procesos`;
+                }
+              }
+            },
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'right',
+              color: isSortingAmount ? '#34D399' : '#FBBF24',
+              font: {
+                family: 'Inter',
+                size: 9,
+                weight: 'bold'
+              },
+              // Mostrar cifra exacta tal cual seguida del total de contratos
+              formatter: function(value, context) {
+                const idx = context.dataIndex;
+                const item = currentSortedList[idx];
+                const fullExactValue = formatCurrency(item.amount);
+                if (isSortingAmount) {
+                  return `${fullExactValue} [${item.count} contr.]`;
+                } else {
+                  return `${item.count} contr. [${fullExactValue}]`;
+                }
+              }
+            },
+            customCanvasBackgroundColor: { color: '#0F172A' }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: {
+                color: '#94A3B8',
+                callback: function(value) {
+                  if (isSortingAmount) {
+                    return formatCurrency(value);
+                  } else {
+                    return value + ' C';
+                  }
+                }
+              },
+              title: {
+                display: true,
+                text: isSortingAmount ? 'Monto Total Contratado (COP)' : 'Número de Contratos Adjudicados',
+                color: '#94A3B8',
+                font: { weight: 'bold' }
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { 
+                color: '#F8FAFC', 
+                font: { size: 9, weight: '500' }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Descargar imagen
+    function downloadTop50ChartImage() {
+      if (!top50ChartInstance) return;
+      const canvas = document.getElementById('top50Chart');
+      const imgUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = imgUrl;
+      const rangeText = top50TimeRange === '4years' ? 'Ultimos4Anos' : 'Historico';
+      const orderText = top50SortField === 'amount' ? 'PorMonto' : 'PorContratos';
+      a.download = `Top50_Contratistas_SanLuis_${rangeText}_${orderText}_${new Date().toISOString().slice(0, 10)}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Renderizar la Tabla Paginada - 22 Columnas Completas
+    function renderTable() {
+      const tableBody = document.getElementById('contracts-body');
+      const visibleCounter = document.getElementById('visible-count');
+      const totalFilteredCounter = document.getElementById('total-filtered-count');
+      const pageInfo = document.getElementById('page-info');
+
+      tableBody.innerHTML = '';
+
+      const totalFiltered = filteredContracts.length;
+      totalFilteredCounter.textContent = totalFiltered.toLocaleString();
+
+      if (totalFiltered === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="22">
+              <div class="no-data-card">
+                <i data-lucide="folder-open"></i>
+                <div class="no-data-title">No se encontraron contratos</div>
+                <p>Ajusta los filtros de búsqueda, el rango de años o el valor mínimo.</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        lucide.createIcons({ attrs: { class: 'animate-pulse' } });
+        pageInfo.textContent = `Página 0 de 0`;
+        document.getElementById('btn-prev').disabled = true;
+        document.getElementById('btn-next').disabled = true;
+        visibleCounter.textContent = '0';
+        return;
+      }
+
+      const totalPages = Math.ceil(totalFiltered / recordsPerPage);
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const startIndex = (currentPage - 1) * recordsPerPage;
+      const endIndex = Math.min(startIndex + recordsPerPage, totalFiltered);
+      const pageData = filteredContracts.slice(startIndex, endIndex);
+
+      pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+      document.getElementById('btn-prev').disabled = currentPage === 1;
+      document.getElementById('btn-next').disabled = currentPage === totalPages;
+      visibleCounter.textContent = `${startIndex + 1}-${endIndex}`;
+
+      pageData.forEach((c, index) => {
+        const val = parseFloat(c.valor_contrato) || 0;
+        const estado = (c.estado_del_proceso || "Otros").trim();
+        
+        let badgeClass = "badge-status-gray";
+        if (["Liquidado", "Celebrado"].includes(estado)) badgeClass = "badge-status-green";
+        else if (["En ejecución", "Ejecucion", "Activo"].includes(estado)) badgeClass = "badge-status-blue";
+        else if (["Convocado", "Adjudicado"].includes(estado)) badgeClass = "badge-status-yellow";
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <!-- 1. Contratista (Primer Columna) -->
+          <td style="font-weight: 600; max-width: 240px; text-overflow: ellipsis; overflow: hidden;" title="${c.nom_raz_social_contratista || 'N/D'}">
+            ${c.nom_raz_social_contratista || 'N/D'}
+          </td>
+          <!-- 2. Documento Proveedor -->
+          <td>${c.documento_proveedor || 'N/D'}</td>
+          <!-- 3. Valor Contrato -->
+          <td style="text-align: right; font-weight: 700; color: var(--primary-light); font-family: 'Outfit', sans-serif;">
+            ${formatCurrency(val)}
+          </td>
+          <!-- 4. Fecha Firma -->
+          <td>${formatDate(c.fecha_de_firma_del_contrato)}</td>
+          <!-- 5. Fecha Fin Ejecución -->
+          <td>${formatDate(c.fecha_fin_ejecuci_n)}</td>
+
+          <!-- Resto de columnas -->
+          <!-- 6. Nombre de la Entidad -->
+          <td style="max-width: 220px; text-overflow: ellipsis; overflow: hidden;" title="${c.nombre_de_la_entidad || 'N/D'}">
+            ${c.nombre_de_la_entidad || 'N/D'}
+          </td>
+          <!-- 7. Objeto del Contrato -->
+          <td style="max-width: 320px; text-overflow: ellipsis; overflow: hidden;" title="${c.objeto_a_contratar || 'N/D'}">
+            ${c.objeto_a_contratar || 'N/D'}
+          </td>
+          <!-- 8. Estado del Proceso -->
+          <td>
+            <span class="badge-status ${badgeClass}">${estado}</span>
+          </td>
+          <!-- 9. Tipo de Contrato -->
+          <td>${c.tipo_de_contrato || 'N/D'}</td>
+          <!-- 10. Fecha Inicio Ejecución -->
+          <td>${formatDate(c.fecha_inicio_ejecuci_n)}</td>
+          <!-- 11. ID Contrato -->
+          <td>${c.numero_del_contrato || 'N/D'}</td>
+          <!-- 12. ID Proceso -->
+          <td>${c.numero_de_proceso || 'N/D'}</td>
+          <!-- 13. NIT de la Entidad -->
+          <td>${c.nit_de_la_entidad || 'N/D'}</td>
+          <!-- 14. Modalidad Contratación -->
+          <td style="max-width: 200px; text-overflow: ellipsis; overflow: hidden;" title="${c.modalidad_de_contrataci_n || 'N/D'}">
+            ${c.modalidad_de_contrataci_n || 'N/D'}
+          </td>
+          <!-- 15. Objeto del Proceso -->
+          <td style="max-width: 220px; text-overflow: ellipsis; overflow: hidden;" title="${c.objeto_del_proceso || 'N/D'}">
+            ${c.objeto_del_proceso || 'N/D'}
+          </td>
+          <!-- 16. Nivel Entidad -->
+          <td>${c.nivel_entidad || 'N/D'}</td>
+          <!-- 17. Código Entidad -->
+          <td>${c.codigo_entidad_en_secop || 'N/D'}</td>
+          <!-- 18. Tipo Documento Proveedor -->
+          <td>${c.tipo_documento_proveedor || 'N/D'}</td>
+          <!-- 19. Departamento Entidad -->
+          <td>${c.departamento_entidad || 'N/D'}</td>
+          <!-- 20. Municipio Entidad -->
+          <td>${c.municipio_entidad || 'N/D'}</td>
+          <!-- 21. Origen -->
+          <td>${c.origen || 'N/D'}</td>
+          
+          <!-- 22. Acciones -->
+          <td style="text-align: center; white-space: nowrap;">
+            <button class="btn-details" onclick="openDetails(${startIndex + index})">
+              <i data-lucide="eye" style="width: 13px; height: 13px;"></i> Ver
+            </button>
+            ${c.url_contrato ? `
+              <a href="${c.url_contrato}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="btn-details" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); color: var(--accent); margin-left: 4px;">
+                <i data-lucide="external-link" style="width: 13px; height: 13px;"></i> SECOP
+              </a>
+            ` : ''}
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Funciones de Paginación
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    }
+
+    // Siguiente página
+    function nextPage() {
+      const totalFiltered = filteredContracts.length;
+      const totalPages = Math.ceil(totalFiltered / recordsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTable();
+      }
+    }
+
+    // Control de Modal
+    function toggleModal(show) {
+      const modal = document.getElementById('detailsModal');
+      if (show) {
+        modal.classList.add('active');
+      } else {
+        modal.classList.remove('active');
+      }
+    }
+
+    function closeModal(event) {
+      if (event.target.id === 'detailsModal') {
+        toggleModal(false);
+      }
+    }
+
+    function openDetails(globalIndex) {
+      const c = filteredContracts[globalIndex];
+      if (!c) return;
+
+      document.getElementById('modal-contract-id').textContent = `Contrato: ${c.numero_del_contrato || 'Sin Número'}`;
+      document.getElementById('modal-subtitle').textContent = c.tipo_de_contrato || "Detalles del Proceso";
+      
+      document.getElementById('det-entidad').textContent = c.nombre_de_la_entidad || "No definido";
+      document.getElementById('det-contratista').textContent = c.nom_raz_social_contratista || "No definido";
+      document.getElementById('det-valor').textContent = formatCurrency(c.valor_contrato);
+      document.getElementById('det-estado').textContent = c.estado_del_proceso || "No definido";
+      document.getElementById('det-tipo-contrato').textContent = c.tipo_de_contrato || "No definido";
+      
+      document.getElementById('det-fecha-firma').textContent = formatDate(c.fecha_de_firma_del_contrato);
+      document.getElementById('det-fecha-inicio').textContent = formatDate(c.fecha_inicio_ejecuci_n);
+      document.getElementById('det-fecha-fin').textContent = formatDate(c.fecha_fin_ejecuci_n);
+      
+      document.getElementById('det-objeto-contrato').textContent = c.objeto_a_contratar || "Sin descripción de objeto de contrato.";
+      document.getElementById('det-objeto-proceso').textContent = c.objeto_del_proceso || "Sin descripción de objeto de proceso.";
+
+      // Campos adicionales
+      document.getElementById('det-nivel-entidad').textContent = c.nivel_entidad || "No definido";
+      document.getElementById('det-codigo-entidad').textContent = c.codigo_entidad_en_secop || "No definido";
+      document.getElementById('det-nit-entidad').textContent = c.nit_de_la_entidad || "No definido";
+      document.getElementById('det-modalidad').textContent = c.modalidad_de_contrataci_n || "No definido";
+      document.getElementById('det-id-proceso').textContent = c.numero_de_proceso || "No definido";
+      document.getElementById('det-origen').textContent = c.origen || "No definido";
+      document.getElementById('det-tipo-doc-proveedor').textContent = c.tipo_documento_proveedor || "No definido";
+      document.getElementById('det-doc-proveedor').textContent = c.documento_proveedor || "No definido";
+      document.getElementById('det-departamento').textContent = c.departamento_entidad || "No definido";
+      document.getElementById('det-municipio').textContent = c.municipio_entidad || "No definido";
+
+      const btnUrl = document.getElementById('det-url');
+      if (c.url_contrato) {
+        btnUrl.href = c.url_contrato;
+        btnUrl.style.display = 'inline-flex';
+      } else {
+        btnUrl.style.display = 'none';
+      }
+
+      toggleModal(true);
+    }
+
+    // Modal del Creador (Exclusivo V11)
+    function toggleCreatorModal(show) {
+      const modal = document.getElementById('creatorModal');
+      if (show) {
+        modal.classList.add('active');
+      } else {
+        modal.classList.remove('active');
+      }
+    }
+
+    function openCreatorModal(event) {
+      if (event) event.preventDefault();
+      toggleCreatorModal(true);
+    }
+
+    function closeCreatorModal(event) {
+      if (event.target.id === 'creatorModal') {
+        toggleCreatorModal(false);
+      }
+    }
+
+    // Exportar Excel Completo - 22 Columnas
+    function exportToExcel() {
+      if (filteredContracts.length === 0) {
+        alert("No hay contratos en la lista filtrada para exportar.");
+        return;
+      }
+
+      const dataToExport = filteredContracts.map(c => ({
+        "Contratista (Razón Social)": c.nom_raz_social_contratista || "N/D",
+        "Documento Proveedor": c.documento_proveedor || "N/D",
+        "Valor Contrato (COP)": parseFloat(c.valor_contrato) || 0,
+        "Fecha de Firma": formatDate(c.fecha_de_firma_del_contrato),
+        "Fecha Fin Ejecución": formatDate(c.fecha_fin_ejecuci_n),
+        "Nombre de la Entidad pública": c.nombre_de_la_entidad || "N/D",
+        "Objeto del Contrato": c.objeto_a_contratar || "N/D",
+        "Estado del Proceso": c.estado_del_proceso || "N/D",
+        "Tipo de Contrato": c.tipo_de_contrato || "N/D",
+        "Fecha Inicio Ejecución": formatDate(c.fecha_inicio_ejecuci_n),
+        "ID Contrato": c.numero_del_contrato || "N/D",
+        "ID Proceso": c.numero_de_proceso || "N/D",
+        "NIT de la Entidad": c.nit_de_la_entidad || "N/D",
+        "Modalidad de Contratación": c.modalidad_de_contrataci_n || "N/D",
+        "Objeto del Proceso": c.objeto_del_proceso || "N/D",
+        "Nivel de la Entidad": c.nivel_entidad || "N/D",
+        "Código de la Entidad en SECOP": c.codigo_entidad_en_secop || "N/D",
+        "Tipo Documento Proveedor": c.tipo_documento_proveedor || "N/D",
+        "Departamento Entidad": c.departamento_entidad || "N/D",
+        "Municipio Entidad": c.municipio_entidad || "N/D",
+        "Origen de la Plataforma": c.origen || "N/D",
+        "URL Contrato": c.url_contrato || "N/D"
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Contratos San Luis");
+
+      const wscols = [
+        { wch: 30 }, { wch: 20 }, { wch: 22 }, { wch: 15 }, { wch: 18 },
+        { wch: 30 }, { wch: 50 }, { wch: 18 }, { wch: 25 }, { wch: 18 },
+        { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 25 }, { wch: 40 },
+        { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 },
+        { wch: 15 }, { wch: 40 }
+      ];
+      worksheet['!cols'] = wscols;
+
+      const filename = `Contratos_San_Luis_Secop_V11_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+    }
+
+    // Iniciar carga del visor
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
